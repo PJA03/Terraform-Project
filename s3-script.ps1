@@ -1,5 +1,5 @@
 # Fixed name so you don't have to edit backend.tf every day
-$bucketName = "galias-terraform-state"
+$bucketName = "galias-finalproject-statefile"
 $region = "ap-southeast-1"
 
 Write-Host "Checking if bucket $bucketName exists..."

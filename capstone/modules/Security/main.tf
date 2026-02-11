@@ -35,16 +35,11 @@ resource "aws_security_group" "bastion_sg" {
   tags = local.bastion_sg_tags
 }
 
-# ==========================================================
 # 1. PUBLIC ALB SECURITY GROUP
-# ==========================================================
 resource "aws_security_group" "alb_sg" {
   name        = "alb-sg"
   description = "Allow HTTP traffic from the internet to the ALB"
   vpc_id      = var.vpc_id
-
-  # NOTE: We removed the inline 'ingress' block here to keep it clean
-  # We will add it as a rule below.
 
   egress {
     from_port   = 0
@@ -56,7 +51,7 @@ resource "aws_security_group" "alb_sg" {
   tags = local.alb_sg_tags
 }
 
-# Rule: Allow the World to talk to the ALB
+# Any to ALB
 resource "aws_security_group_rule" "alb_ingress_http" {
   type              = "ingress"
   from_port         = 80
@@ -66,19 +61,13 @@ resource "aws_security_group_rule" "alb_ingress_http" {
   security_group_id = aws_security_group.alb_sg.id
 }
 
-# ==========================================================
 # 2. APPLICATION SECURITY GROUPS (Frontend & Backend)
-# ==========================================================
 resource "aws_security_group" "app_sgs" {
   for_each = local.app_tiers
 
   name   = "${var.lastname}-${each.key}-sg"
   vpc_id = var.vpc_id
   tags   = each.value
-
-  # === CRITICAL FIX: NO INLINE INGRESS BLOCKS HERE ===
-  # We moved the Bastion rules to "aws_security_group_rule" below.
-  # This prevents them from blocking the Load Balancer rules.
 
   egress {
     from_port   = 0
@@ -88,11 +77,9 @@ resource "aws_security_group" "app_sgs" {
   }
 }
 
-# ==========================================================
-# 3. CONNECTIVITY RULES (The Plumbing)
-# ==========================================================
 
-# --- BASTION ACCESS (SSH) ---
+# 3. CONNECTIVITY RULES (The Plumbing)
+# Bastion SSH
 resource "aws_security_group_rule" "bastion_ssh" {
   for_each = local.app_tiers
 
@@ -104,7 +91,7 @@ resource "aws_security_group_rule" "bastion_ssh" {
   security_group_id        = aws_security_group.app_sgs[each.key].id
 }
 
-# --- BASTION ACCESS (HTTP Testing) ---
+# Bastion HTTP
 resource "aws_security_group_rule" "bastion_http" {
   for_each = local.app_tiers
 
@@ -116,7 +103,7 @@ resource "aws_security_group_rule" "bastion_http" {
   security_group_id        = aws_security_group.app_sgs[each.key].id
 }
 
-# --- FRONTEND: Allow ALB to talk to Frontend ---
+# ALB -> FE
 resource "aws_security_group_rule" "alb_to_frontend" {
   type                     = "ingress"
   from_port                = 80
@@ -126,7 +113,7 @@ resource "aws_security_group_rule" "alb_to_frontend" {
   security_group_id        = aws_security_group.app_sgs["frontend"].id
 }
 
-# --- BACKEND: Allow Frontend to talk to Backend ---
+# FE -> BE
 resource "aws_security_group_rule" "frontend_to_backend" {
   type                     = "ingress"
   from_port                = 80
@@ -136,7 +123,7 @@ resource "aws_security_group_rule" "frontend_to_backend" {
   security_group_id        = aws_security_group.app_sgs["backend"].id
 }
 
-# --- BACKEND: Allow VPC (NLB Health Checks) ---
+# Backend Health Check
 resource "aws_security_group_rule" "backend_allow_health_checks" {
   type              = "ingress"
   from_port         = 80

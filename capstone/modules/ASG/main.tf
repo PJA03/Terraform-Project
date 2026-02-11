@@ -15,7 +15,7 @@ locals {
   }
 }
 
-# --- Get Latest Amazon Linux 2023 AMI ---
+# Get Latest Amazon Linux 2023 AMI
 data "aws_ami" "latest_amazon_linux" {
   most_recent = true
   owners = ["amazon"]
@@ -31,7 +31,8 @@ data "aws_ami" "latest_amazon_linux" {
   }
 }
 
-# --- Launch Templates (Created for both tiers) ---
+# Launch Templates (Created for both end) 
+# TODO: Fix this
 resource "aws_launch_template" "app_lt" {
   for_each = local.app_tiers
 
@@ -56,7 +57,7 @@ resource "aws_launch_template" "app_lt" {
   }
 }
 
-# --- Auto Scaling Groups (Created for both tiers) ---
+# Auto Scaling Groups for both ends
 resource "aws_autoscaling_group" "app_asg" {
   for_each = local.app_tiers
 

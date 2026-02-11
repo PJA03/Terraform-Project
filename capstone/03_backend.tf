@@ -7,7 +7,7 @@ terraform {
     key = "capstone/terraform.tfstate"
 
     region       = "ap-southeast-1"
-    use_lockfile = true
+    use_lockfile = true #native s3 locking
     encrypt      = true
   }
 }

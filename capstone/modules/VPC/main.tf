@@ -30,7 +30,7 @@ resource "aws_subnet" "private" {
   tags              = local.private_tags
 }
 
-# Internet Gateway & NAT Gateway (One for the VPC as per diagram)
+# Internet Gateway & NAT Gateway 
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags   = local.igw_tags
