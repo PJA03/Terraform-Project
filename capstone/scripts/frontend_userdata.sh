@@ -9,9 +9,7 @@ systemctl start httpd
 systemctl enable httpd
 
 # Backend URL (Injected from Terraform)
-# BACKEND_URL="http://${BACKEND_URL}/api.json"
-BACKEND_URL="http://${backend_url}/api.json"
-
+BACKEND_URL="http://${BACKEND_URL}/api.json"
 
 # Fetch backend data and store in index.html
 # cat <<EOF > /var/www/html/index.html

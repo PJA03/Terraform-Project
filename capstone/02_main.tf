@@ -20,8 +20,8 @@ module "security" {
   http_port     = var.http_port
   ssh_port      = var.ssh_port
   required_tags = var.required_tags
-  vpc_cidr = var.vpc_cidr
-  
+  vpc_cidr      = var.vpc_cidr
+
 
   #   chomp for clean up
   access_ip = "${chomp(data.http.my_ip.response_body)}/32"
@@ -35,23 +35,23 @@ module "bastion_host" {
   required_tags    = var.required_tags
   key_name         = var.key_name
   bastion_instance = var.bastion_instance
-  public_subnets = module.network.public_subnet_ids
+  public_subnets   = module.network.public_subnet_ids
   bastion_sg_id    = module.security.bastion_sg_id
 }
 
 # asg module
 module "instances" {
   source          = "./modules/ASG"
-  lastname = var.lastname
-  required_tags = var.required_tags
-  private_cidrs= module.network.private_subnet_ids
+  lastname        = var.lastname
+  required_tags   = var.required_tags
+  private_cidrs   = module.network.private_subnet_ids
   key_name        = var.key_name
   vpc_id          = module.network.vpc_id
   frontend_sg_id  = module.security.frontend_sg_id
   backend_sg_id   = module.security.backend_sg_id
   frontend_tg_arn = module.loadbalancers.frontend_tg_arn
   backend_tg_arn  = module.loadbalancers.backend_tg_arn
-  backend_url = module.loadbalancers.backend_dns_name
+  backend_url     = module.loadbalancers.backend_dns_name
 }
 
 module "loadbalancers" {

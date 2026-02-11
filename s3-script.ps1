@@ -13,7 +13,7 @@ catch {
     Write-Host "Bucket already exists or could not be created. (This is fine if you didn't delete it yesterday)"
 }
 
-# Always ensure versioning is on (Idempotent - safe to run multiple times)
+# enable versioning
 aws s3api put-bucket-versioning --bucket $bucketName --versioning-configuration Status=Enabled
 
 Write-Host "------------------------------------------------"

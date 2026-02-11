@@ -4,11 +4,11 @@ output "bastion_public_ip" {
 }
 
 output "bastion_ssh_command" {
-  description = "Run this command to SSH into your Bastion"
+  description = "Command to SSH into Bastion"
   value       = "ssh -i ${var.key_name}.pem ec2-user@${module.bastion_host.bastion_public_ip}"
 }
 
 output "frontend_endpoint" {
-  description = "Click this URL to access your website"
+  description = "URL for ALB Access (WEB)"
   value       = "http://${module.loadbalancers.frontend_dns_name}"
 }

@@ -46,15 +46,10 @@ resource "aws_launch_template" "app_lt" {
   # Logic: If this is the "frontend", use templatefile with the variable.
   #        If this is the "backend", just read the file normally.
   user_data = each.key == "frontend" ? base64encode(templatefile("${path.root}/scripts/frontend_userdata.sh", {
-    # If the script asks for lowercase:
-    backend_url = var.backend_url
-    # If the script asks for UPPERCASE:
     BACKEND_URL = var.backend_url
   })) : base64encode(file("${path.root}/scripts/backend_userdata.sh"))
-  tag_specifications {
-    resource_type = "instance"
-    tags = each.value.tags
-  }
+  
+  tags = each.value.tags
 }
 
 # Auto Scaling Groups for both 

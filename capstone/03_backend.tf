@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    # Replace this with the EXACT bucket name from your script output
+    # bucket name where state files will be stored
     bucket = "galias-terraform-state"
 
-    # The path to the state file inside the bucket
+    # statefile path  (inside capstone module)
     key = "capstone/terraform.tfstate"
 
     region       = "ap-southeast-1"

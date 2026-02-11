@@ -1,21 +1,46 @@
+# ☁️ AWS 3-Tier Architecture with Terraform
 
-Welcome to my Final Project
+This project deploys a highly available, scalable **3-Tier Web Architecture** on AWS using **Terraform**. It includes a public-facing Frontend, a private Backend, and a Bastion host for secure access.
 
-# 1. Run this command first before everything else
+## 🏗️ Architecture Overview
+* **VPC:** Custom VPC with Public and Private subnets across 2 Availability Zones.
+* **Compute:**
+    * **Frontend:** Auto Scaling Group (ASG) with Application Load Balancer (ALB).
+    * **Backend:** Auto Scaling Group (ASG) with Internal Load Balancer.
+    * **Bastion Host:** For secure SSH access to private instances.
+* **Security:** Tightly scoped Security Groups (ALB $\to$ Frontend $\to$ Backend).
+* **Scaling:** Dynamic scaling policies based on CPU utilization.
 
+## 🛠️ Prerequisites
+* [Terraform](https://www.terraform.io/downloads) installed (`v1.0+`).
+* [AWS CLI](https://aws.amazon.com/cli/) installed and configured with your credentials.
+* PowerShell (for the S3 setup script).
+
+---
+
+## 🚀 Quick Start Guide
+
+### 1. Setup Remote State (S3)
+Run this script to create the S3 bucket for storing Terraform state.
+```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 ./s3-script.ps1
+```
 
-# 2. Proceed to TF Plan/Apply
+### 2. Change directory to capstone folder then perform the standard TF commands
+```
+terraform init
+terraform plan
+terraform apply
+```
+---
 
-----------------------------------------------------------------------
-For stress test of ASG Instances
-
-# 1. Update repositories
+## For Stress testing
+### Update repositories
 sudo yum update -y
 
-# 2. Install stress (Amazon Linux 2023 usually has it, if not, we use a fallback)
+### Install stress tool
 sudo yum install -y stress
 
-# Stress 2 CPU cores for 600 seconds (10 minutes)
+### Stress 2 CPU cores for 600 seconds
 stress --cpu 2 --timeout 600
