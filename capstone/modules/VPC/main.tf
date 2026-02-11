@@ -6,6 +6,7 @@ locals {
   nat_tags        = merge(var.required_tags, { Name = "${var.lastname}-nat-gateway" })
   public_rt_tags  = merge(var.required_tags, { Name = "${var.lastname}-public-route-table" })
   private_rt_tags = merge(var.required_tags, { Name = "${var.lastname}-private-route-table" })
+  nat_eip_tags    = merge(var.required_tags, { Name = "${var.lastname}-nat-eip" })
 }
 
 resource "aws_vpc" "main" {
@@ -38,6 +39,7 @@ resource "aws_internet_gateway" "igw" {
 
 resource "aws_eip" "nat" {
   domain = "vpc"
+  tags = local.nat_eip_tags
 }
 
 resource "aws_nat_gateway" "main" {

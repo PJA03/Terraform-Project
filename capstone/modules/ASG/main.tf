@@ -57,7 +57,7 @@ resource "aws_launch_template" "app_lt" {
   }
 }
 
-# Auto Scaling Groups for both ends
+# Auto Scaling Groups for both 
 resource "aws_autoscaling_group" "app_asg" {
   for_each = local.app_tiers
 
