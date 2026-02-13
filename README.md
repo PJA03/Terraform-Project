@@ -37,10 +37,22 @@ terraform apply
 
 ## For Stress testing
 ### Update repositories
+```powershell
 sudo yum update -y
+```
 
 ### Install stress tool
+```powershell
 sudo yum install -y stress
+```
 
 ### Stress 2 CPU cores for 600 seconds
+```powershell
 stress --cpu 2 --timeout 600
+```
+
+## Unhealthy Target Group Testing
+# If using Apache (Amazon Linux default)
+```powershell
+sudo systemctl stop httpd
+```
