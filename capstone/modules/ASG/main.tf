@@ -1,29 +1,21 @@
 locals {
-  app_tiers = {
-    frontend = {
-      sg_id     = var.frontend_sg_id
-      tg_arn    = var.frontend_tg_arn
-      user_data = "${path.root}/scripts/frontend_userdata.sh" 
-      tags      = merge(var.required_tags, { Name = "${var.lastname}-frontend-asg" })
-    }
-    backend = {
-      sg_id     = var.backend_sg_id
-      tg_arn    = var.backend_tg_arn
-      user_data = "${path.root}/scripts/backend_userdata.sh"
-      tags      = merge(var.required_tags, { Name = "${var.lastname}-backend-asg" })
-    }
-  }
+  fe_asg_tags = merge(var.required_tags, { Name = "${var.lastname}-frontend-asg" })
+  fe_lt_tags = merge(var.required_tags, { Name = "${var.lastname}-frontend-lt" })
+  be_asg_tags = merge(var.required_tags, { Name = "${var.lastname}-backend-asg" })
+  be_lt_tags = merge(var.required_tags, { Name = "${var.lastname}-backend-lt" })
 }
 
-# Get Latest Amazon Linux 2023 AMI
+# =========================================================================
+# 1. DATA SOURCES
+# =========================================================================
 data "aws_ami" "latest_amazon_linux" {
   most_recent = true
-  owners = ["amazon"]
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023.*-x86_64"]  
-        }
+    values = ["al2023-ami-2023.*-x86_64"]
+  }
 
   filter {
     name   = "virtualization-type"
@@ -31,65 +23,107 @@ data "aws_ami" "latest_amazon_linux" {
   }
 }
 
-# Launch Templates (Created for both end) 
-# TODO: Fix this
-resource "aws_launch_template" "app_lt" {
-  for_each = local.app_tiers
+# =========================================================================
+# 2. FRONTEND RESOURCES
+# =========================================================================
 
-  name_prefix   = "${var.lastname}-${each.key}-lt-"
+# --- Frontend Launch Template ---
+resource "aws_launch_template" "frontend_lt" {
+  name_prefix   = "${var.lastname}-frontend-lt-"
   image_id      = data.aws_ami.latest_amazon_linux.id
-  instance_type = "t3.micro"
+  instance_type = var.instance_type
   key_name      = var.key_name
 
-  vpc_security_group_ids = [each.value.sg_id]
+  vpc_security_group_ids = [var.frontend_sg_id]
 
-  # Logic: If this is the "frontend", use templatefile with the variable.
-  #        If this is the "backend", just read the file normally.
-  user_data = each.key == "frontend" ? base64encode(templatefile("${path.root}/scripts/frontend_userdata.sh", {
+  # Inject Backend URL variable into script
+  user_data = base64encode(templatefile("${path.root}/scripts/frontend_userdata.sh", {
     BACKEND_URL = var.backend_url
-  })) : base64encode(file("${path.root}/scripts/backend_userdata.sh"))
-  
-  tags = each.value.tags
+  }))
+
+  tag_specifications {
+    resource_type = "instance"
+    tags          = local.fe_asg_tags
+  }
 }
 
-# Auto Scaling Groups for both 
-resource "aws_autoscaling_group" "app_asg" {
-  for_each = local.app_tiers
+# --- Frontend Auto Scaling Group ---
+resource "aws_autoscaling_group" "frontend_asg" {
+  name                = "${var.lastname}-frontend-asg"
+  vpc_zone_identifier = var.private_subnet_ids
+  target_group_arns   = [var.frontend_tg_arn]
 
-  name                = "${var.lastname}-${each.key}-asg"
-  vpc_zone_identifier = var.private_cidrs
-  target_group_arns   = [each.value.tg_arn]
-  
-  # Health Checks
   health_check_type         = "ELB"
   health_check_grace_period = 300
+  wait_for_capacity_timeout = "0"
 
-  # Capacity
   min_size         = 2
   max_size         = 4
   desired_capacity = 2
 
   launch_template {
-    id      = aws_launch_template.app_lt[each.key].id
+    id      = aws_launch_template.frontend_lt.id
     version = "$Latest"
   }
 }
 
-# SCALE OUT RULES (CPU >= 40%)
-resource "aws_autoscaling_policy" "scale_out" {
-  for_each = local.app_tiers
+# =========================================================================
+# 3. BACKEND RESOURCES
+# =========================================================================
 
-  name                   = "${each.key}-scale-out"
+# --- Backend Launch Template ---
+resource "aws_launch_template" "backend_lt" {
+  name_prefix   = "${var.lastname}-backend-lt-"
+  image_id      = data.aws_ami.latest_amazon_linux.id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+
+  vpc_security_group_ids = [var.backend_sg_id]
+
+  # Just read the file (no variables needed)
+  user_data = base64encode(file("${path.root}/scripts/backend_userdata.sh"))
+
+  tag_specifications {
+    resource_type = "instance"
+    tags          = local.be_asg_tags
+  }
+}
+
+# --- Backend Auto Scaling Group ---
+resource "aws_autoscaling_group" "backend_asg" {
+  name                = "${var.lastname}-backend-asg"
+  vpc_zone_identifier = var.private_subnet_ids
+  target_group_arns   = [var.backend_tg_arn]
+
+  health_check_type         = "ELB"
+  health_check_grace_period = 300
+  wait_for_capacity_timeout = "0"
+
+  min_size         = 2
+  max_size         = 4
+  desired_capacity = 2
+
+  launch_template {
+    id      = aws_launch_template.backend_lt.id
+    version = "$Latest"
+  }
+}
+
+# =========================================================================
+# 4. FRONTEND SCALING POLICIES (Scaling Out & In)
+# =========================================================================
+
+# Scale OUT (Frontend)
+resource "aws_autoscaling_policy" "frontend_scale_out" {
+  name                   = "frontend-scale-out"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.app_asg[each.key].name
+  autoscaling_group_name = aws_autoscaling_group.frontend_asg.name
 }
 
-resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  for_each = local.app_tiers
-
-  alarm_name          = "${var.lastname}-${each.key}-high-cpu"
+resource "aws_cloudwatch_metric_alarm" "frontend_high_cpu" {
+  alarm_name          = "${var.lastname}-frontend-high-cpu"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "CPUUtilization"
@@ -99,27 +133,23 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   threshold           = 40
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.app_asg[each.key].name
+    AutoScalingGroupName = aws_autoscaling_group.frontend_asg.name
   }
 
-  alarm_actions = [aws_autoscaling_policy.scale_out[each.key].arn]
+  alarm_actions = [aws_autoscaling_policy.frontend_scale_out.arn]
 }
 
-# SCALE IN RULES (CPU <= 10%)
-resource "aws_autoscaling_policy" "scale_in" {
-  for_each = local.app_tiers
-
-  name                   = "${each.key}-scale-in"
+# Scale IN (Frontend)
+resource "aws_autoscaling_policy" "frontend_scale_in" {
+  name                   = "frontend-scale-in"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = aws_autoscaling_group.app_asg[each.key].name
+  autoscaling_group_name = aws_autoscaling_group.frontend_asg.name
 }
 
-resource "aws_cloudwatch_metric_alarm" "low_cpu" {
-  for_each = local.app_tiers
-
-  alarm_name          = "${var.lastname}-${each.key}-low-cpu"
+resource "aws_cloudwatch_metric_alarm" "frontend_low_cpu" {
+  alarm_name          = "${var.lastname}-frontend-low-cpu"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = 1
   metric_name         = "CPUUtilization"
@@ -129,8 +159,64 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu" {
   threshold           = 10
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.app_asg[each.key].name
+    AutoScalingGroupName = aws_autoscaling_group.frontend_asg.name
   }
 
-  alarm_actions = [aws_autoscaling_policy.scale_in[each.key].arn]
+  alarm_actions = [aws_autoscaling_policy.frontend_scale_in.arn]
+}
+
+# =========================================================================
+# 5. BACKEND SCALING POLICIES (Scaling Out & In)
+# =========================================================================
+
+# Scale OUT (Backend)
+resource "aws_autoscaling_policy" "backend_scale_out" {
+  name                   = "backend-scale-out"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.backend_asg.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "backend_high_cpu" {
+  alarm_name          = "${var.lastname}-backend-high-cpu"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 40
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.backend_asg.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.backend_scale_out.arn]
+}
+
+# Scale IN (Backend)
+resource "aws_autoscaling_policy" "backend_scale_in" {
+  name                   = "backend-scale-in"
+  scaling_adjustment     = -1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300
+  autoscaling_group_name = aws_autoscaling_group.backend_asg.name
+}
+
+resource "aws_cloudwatch_metric_alarm" "backend_low_cpu" {
+  alarm_name          = "${var.lastname}-backend-low-cpu"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 60
+  statistic           = "Average"
+  threshold           = 10
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.backend_asg.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.backend_scale_in.arn]
 }

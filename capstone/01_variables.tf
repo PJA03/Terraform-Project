@@ -48,3 +48,8 @@ variable "key_name" {
 variable "assoc_ip" {
   type = bool
 }
+
+# ASG
+variable "instance_type" {
+  type = string
+}
