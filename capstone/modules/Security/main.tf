@@ -1,3 +1,25 @@
+/**
+ * Module: Security Layer (Firewalls)
+ * Description: Defines the network access control boundaries using AWS Security Groups.
+ * Implements Principle of Least Privilege.
+ *
+ * Resources Created:
+ * 1. Public Security Groups:
+ * - Bastion SG: Restricts SSH (Port 22) access to a single trusted IP (Administrator).
+ * - ALB SG: Allows HTTP (Port 80) access from the global internet (0.0.0.0/0).
+ *
+ * 2. Private Application SGs (Dynamic):
+ * - Frontend SG: associated with Frontend ASG instances.
+ * - Backend SG: associated with Backend ASG instances.
+ *
+ * 3. Connectivity Rules:
+ * - Internet -> ALB: Allowed.
+ * - ALB -> Frontend: Traffic allowed ONLY from the ALB Security Group.
+ * - Frontend -> Backend: Traffic allowed ONLY from the Frontend Security Group.
+ * - Bastion -> All: SSH allowed ONLY from the Bastion Security Group.
+ * - VPC -> Backend: Allows internal health checks (required for Network Load Balancer).
+ */
+
 # Locals for tagging
 locals {
   bastion_sg_tags = merge(var.required_tags, { Name = "${var.lastname}-bastion-sg" })

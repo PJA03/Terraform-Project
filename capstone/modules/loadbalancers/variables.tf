@@ -8,7 +8,7 @@ variable "vpc_id" { type = string }
 variable "public_cidrs" { type = list(string) }
 variable "private_cidrs" { type = list(string) }
 
-# Security Group (Only needed for the Application Load Balancer)
+# Security Group ( for the Application Load Balancer)
 variable "alb_sg_id" {
   description = "Security Group for the Frontend ALB"
   type        = string
