@@ -41,6 +41,10 @@ resource "aws_launch_template" "frontend_lt" {
     BACKEND_URL = var.backend_url
   }))
 
+  lifecycle {
+      create_before_destroy = true
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags          = local.fe_asg_tags
@@ -82,6 +86,10 @@ resource "aws_launch_template" "backend_lt" {
 
   # Just read the file (no variables needed)
   user_data = base64encode(file("${path.root}/scripts/backend_userdata.sh"))
+
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tag_specifications {
     resource_type = "instance"
