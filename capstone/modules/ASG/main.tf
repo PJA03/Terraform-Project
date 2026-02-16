@@ -18,9 +18,9 @@
 
 locals {
   fe_asg_tags = merge(var.required_tags, { Name = "${var.lastname}-frontend-asg" })
-  fe_lt_tags = merge(var.required_tags, { Name = "${var.lastname}-frontend-lt" })
+  fe_lt_tags  = merge(var.required_tags, { Name = "${var.lastname}-frontend-lt" })
   be_asg_tags = merge(var.required_tags, { Name = "${var.lastname}-backend-asg" })
-  be_lt_tags = merge(var.required_tags, { Name = "${var.lastname}-backend-lt" })
+  be_lt_tags  = merge(var.required_tags, { Name = "${var.lastname}-backend-lt" })
 }
 
 # DATA SOURCES
@@ -55,7 +55,7 @@ resource "aws_launch_template" "frontend_lt" {
   }))
 
   lifecycle {
-      create_before_destroy = true
+    create_before_destroy = true
   }
 
   tag_specifications {

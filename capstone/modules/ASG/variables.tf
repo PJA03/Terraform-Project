@@ -1,35 +1,35 @@
-variable "lastname" { 
-    type = string 
+variable "lastname" {
+  type = string
 }
 
 variable "required_tags" {
   type = map(string)
 }
 
-variable "vpc_id" { 
-    type = string 
+variable "vpc_id" {
+  type = string
 }
 
-variable "key_name" { 
-    type = string 
+variable "key_name" {
+  type = string
 }
 
 # Security Groups 
-variable "frontend_sg_id" { 
-    type = string
+variable "frontend_sg_id" {
+  type = string
 }
 
-variable "backend_sg_id" { 
-    type = string 
+variable "backend_sg_id" {
+  type = string
 }
 
 # Target Groups
-variable "frontend_tg_arn" { 
-    type = string
+variable "frontend_tg_arn" {
+  type = string
 }
 
-variable "backend_tg_arn" { 
-    type = string 
+variable "backend_tg_arn" {
+  type = string
 }
 
 variable "backend_url" {
@@ -44,5 +44,5 @@ variable "private_subnet_ids" {
 
 variable "instance_type" {
   description = "Instance type"
-  type = string
+  type        = string
 }

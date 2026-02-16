@@ -1,9 +1,9 @@
 # Locals for tagging
 locals {
-  bastion_sg_tags        = merge(var.required_tags, { Name = "${var.lastname}-bastion-sg" })
-  alb_sg_tags        = merge(var.required_tags, { Name = "${var.lastname}-alb-sg" })
-  fe_sg_tags        = merge(var.required_tags, { Name = "${var.lastname}-frontend-sg" })
-  be_sg_tags        = merge(var.required_tags, { Name = "${var.lastname}-backend-sg" })
+  bastion_sg_tags = merge(var.required_tags, { Name = "${var.lastname}-bastion-sg" })
+  alb_sg_tags     = merge(var.required_tags, { Name = "${var.lastname}-alb-sg" })
+  fe_sg_tags      = merge(var.required_tags, { Name = "${var.lastname}-frontend-sg" })
+  be_sg_tags      = merge(var.required_tags, { Name = "${var.lastname}-backend-sg" })
 
   app_tiers = {
     frontend = local.fe_sg_tags

@@ -9,7 +9,7 @@ variable "public_cidrs" { type = list(string) }
 variable "private_cidrs" { type = list(string) }
 
 # Security Group (Only needed for the Application Load Balancer)
-variable "alb_sg_id" { 
+variable "alb_sg_id" {
   description = "Security Group for the Frontend ALB"
-  type        = string 
+  type        = string
 }

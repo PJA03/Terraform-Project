@@ -1,16 +1,16 @@
 locals {
-  fe-alb = merge(var.required_tags, { Name = "${var.lastname}-frontend-alb" })
-  fe-tg = merge(var.required_tags, { Name = "${var.lastname}-frontend-tg" })
+  fe-alb      = merge(var.required_tags, { Name = "${var.lastname}-frontend-alb" })
+  fe-tg       = merge(var.required_tags, { Name = "${var.lastname}-frontend-tg" })
   fe-listener = merge(var.required_tags, { Name = "${var.lastname}-frontend-listener" })
-  be-nlb = merge(var.required_tags, { Name = "${var.lastname}-backend-nlb" })
-  be-tg = merge(var.required_tags, { Name = "${var.lastname}-backend-tg" })
+  be-nlb      = merge(var.required_tags, { Name = "${var.lastname}-backend-nlb" })
+  be-tg       = merge(var.required_tags, { Name = "${var.lastname}-backend-tg" })
   be-listener = merge(var.required_tags, { Name = "${var.lastname}-backend-listener" })
 
 }
 # 1. FRONTEND: APPLICATION LOAD BALANCER (HTTP)
 resource "aws_lb" "frontend_alb" {
   name               = "${var.lastname}-frontend-alb"
-  internal           = false  # Public facing
+  internal           = false # Public facing
   load_balancer_type = "application"
   security_groups    = [var.alb_sg_id]
   subnets            = var.public_cidrs
@@ -53,7 +53,7 @@ resource "aws_lb_listener" "frontend_http" {
 # 2. BACKEND: NETWORK LOAD BALANCER (TCP)
 resource "aws_lb" "backend_nlb" {
   name               = "${var.lastname}-backend-nlb"
-  internal           = true   # Internal only (Private Subnets)
+  internal           = true # Internal only (Private Subnets)
   load_balancer_type = "network"
   subnets            = var.private_cidrs
 
@@ -65,7 +65,7 @@ resource "aws_lb" "backend_nlb" {
 resource "aws_lb_target_group" "backend_tg" {
   name     = "${var.lastname}-backend-tg"
   port     = 80
-  protocol = "TCP"  # NLB uses TCP
+  protocol = "TCP" # NLB uses TCP
   vpc_id   = var.vpc_id
 
   # TCP Health Check is standard for NLBs

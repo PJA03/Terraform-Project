@@ -39,7 +39,7 @@ resource "aws_internet_gateway" "igw" {
 
 resource "aws_eip" "nat" {
   domain = "vpc"
-  tags = local.nat_eip_tags
+  tags   = local.nat_eip_tags
 }
 
 resource "aws_nat_gateway" "main" {
@@ -59,7 +59,7 @@ resource "aws_route_table" "public_rt" {
   }
 
   tags = local.public_rt_tags
-}  
+}
 
 # Private RT
 resource "aws_route_table" "private_rt" {
@@ -71,7 +71,7 @@ resource "aws_route_table" "private_rt" {
   }
 
   tags = local.private_rt_tags
-}  
+}
 
 
 # Route Table Associations
