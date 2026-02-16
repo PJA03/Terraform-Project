@@ -1,7 +1,7 @@
-# 1. Find all instances that belong to the Frontend ASG
+# looks for all instances that belong to the Frontend ASG
 data "aws_instances" "frontend_instances" {
   instance_tags = {
-    Name = "${var.lastname}-frontend-asg" # Must match the tag you gave them!
+    Name = "${var.lastname}-frontend-asg"
   }
 
   instance_state_names = ["running"]
@@ -9,7 +9,8 @@ data "aws_instances" "frontend_instances" {
 }
 
 output "frontend_connect_ip" {
-  description = "SSH Connection IP (First Instance)"
-  # The try() function prevents errors if the ASG is empty (0 instances)
+  description = "SSH Connection IP"
+  # Error handling for when no instances are found
+  # fallback value instead of having error when no instances
   value = try(data.aws_instances.frontend_instances.private_ips[0], "No instances running")
 }

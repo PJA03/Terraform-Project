@@ -1,3 +1,21 @@
+/**
+ * Module: Compute Layer (Auto Scaling)
+ * Description: Deploys the Frontend and Backend compute infrastructure using
+ * Auto Scaling Groups (ASG) for high availability and dynamic scaling.
+ *
+ * Resources Created:
+ * - 2x Launch Templates: Defines instance specs (AMI, Type, User Data, Security Groups) for Frontend/Backend.
+ * - 2x Auto Scaling Groups: Manages lifecycle of instances (Min: 2, Max: 4) across private subnets.
+ * - Dynamic Scaling Policies:
+ * - Scale Out: Adds +1 instance when CPU >= 40%.
+ * - Scale In: Removes -1 instance when CPU <= 10%.
+ * - CloudWatch Alarms: Monitors CPU utilization to trigger scaling events.
+ *
+ * Key Features:
+ * - Zero-Downtime Updates: Uses `create_before_destroy` lifecycle rules.
+ * - Self-Healing: Automatically replaces unhealthy instances via ELB/EC2 health checks.
+ */
+
 locals {
   fe_asg_tags = merge(var.required_tags, { Name = "${var.lastname}-frontend-asg" })
   fe_lt_tags = merge(var.required_tags, { Name = "${var.lastname}-frontend-lt" })
@@ -5,9 +23,7 @@ locals {
   be_lt_tags = merge(var.required_tags, { Name = "${var.lastname}-backend-lt" })
 }
 
-# =========================================================================
-# 1. DATA SOURCES
-# =========================================================================
+# DATA SOURCES
 data "aws_ami" "latest_amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -23,10 +39,7 @@ data "aws_ami" "latest_amazon_linux" {
   }
 }
 
-# =========================================================================
-# 2. FRONTEND RESOURCES
-# =========================================================================
-
+# FRONTEND RESOURCES
 # --- Frontend Launch Template ---
 resource "aws_launch_template" "frontend_lt" {
   name_prefix   = "${var.lastname}-frontend-lt-"
@@ -71,10 +84,7 @@ resource "aws_autoscaling_group" "frontend_asg" {
   }
 }
 
-# =========================================================================
-# 3. BACKEND RESOURCES
-# =========================================================================
-
+# BACKEND RESOURCES
 # --- Backend Launch Template ---
 resource "aws_launch_template" "backend_lt" {
   name_prefix   = "${var.lastname}-backend-lt-"
@@ -117,9 +127,7 @@ resource "aws_autoscaling_group" "backend_asg" {
   }
 }
 
-# =========================================================================
-# 4. FRONTEND SCALING POLICIES (Scaling Out & In)
-# =========================================================================
+# FRONTEND SCALING POLICIES (Scaling Out & In)
 
 # Scale OUT (Frontend)
 resource "aws_autoscaling_policy" "frontend_scale_out" {
@@ -173,9 +181,7 @@ resource "aws_cloudwatch_metric_alarm" "frontend_low_cpu" {
   alarm_actions = [aws_autoscaling_policy.frontend_scale_in.arn]
 }
 
-# =========================================================================
-# 5. BACKEND SCALING POLICIES (Scaling Out & In)
-# =========================================================================
+# BACKEND SCALING POLICIES (Scaling Out & In)
 
 # Scale OUT (Backend)
 resource "aws_autoscaling_policy" "backend_scale_out" {
