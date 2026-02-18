@@ -53,3 +53,29 @@ variable "assoc_ip" {
 variable "instance_type" {
   type = string
 }
+
+variable "min_size" {
+  type = number
+}
+variable "max_size" {
+  type = number
+}
+variable "desired_size" {
+  type = number
+}
+
+variable "evaluation_periods" {
+  type = number
+}
+
+variable "period" {
+  type = number
+}
+
+variable "out_threshold" {
+  type = number
+}
+
+variable "in_threshold" {
+  type = number
+}

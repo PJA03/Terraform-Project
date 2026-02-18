@@ -51,6 +51,13 @@ module "instances" {
   backend_url        = module.loadbalancers.backend_dns_name
   private_subnet_ids = module.network.private_subnet_ids
   instance_type      = var.instance_type
+  min_size = var.min_size
+  max_size = var.max_size
+  desired_size = var.desired_size
+  evaluation_periods = var.evaluation_periods
+  period = var.period
+  out_threshold = var.out_threshold
+  in_threshold = var.in_threshold
 }
 
 module "loadbalancers" {

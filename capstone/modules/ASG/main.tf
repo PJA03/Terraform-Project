@@ -46,7 +46,6 @@ resource "aws_launch_template" "frontend_lt" {
   image_id      = data.aws_ami.latest_amazon_linux.id
   instance_type = var.instance_type
   key_name      = var.key_name
-
   vpc_security_group_ids = [var.frontend_sg_id]
 
   # Inject Backend URL variable into script
@@ -56,6 +55,12 @@ resource "aws_launch_template" "frontend_lt" {
 
   lifecycle {
     create_before_destroy = true
+  }
+
+  monitoring { 
+    # Enable detailed monitoring for better scaling responsiveness (1-minute metrics)
+    # since cloudwatch default is 5 mins 
+    enabled = true
   }
 
   tag_specifications {
@@ -71,12 +76,13 @@ resource "aws_autoscaling_group" "frontend_asg" {
   target_group_arns   = [var.frontend_tg_arn]
 
   health_check_type         = "ELB"
-  health_check_grace_period = 300
+  # might cause death loop when lowered; allows installation and updates before checking
+  health_check_grace_period = 300 
   wait_for_capacity_timeout = "0"
 
-  min_size         = 2
-  max_size         = 4
-  desired_capacity = 2
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_size
 
   launch_template {
     id      = aws_launch_template.frontend_lt.id
@@ -101,6 +107,11 @@ resource "aws_launch_template" "backend_lt" {
     create_before_destroy = true
   }
 
+  monitoring { 
+    # Enable detailed monitoring for better scaling responsiveness (1-minute metrics)
+    enabled = true
+  }
+
   tag_specifications {
     resource_type = "instance"
     tags          = local.be_asg_tags
@@ -117,9 +128,9 @@ resource "aws_autoscaling_group" "backend_asg" {
   health_check_grace_period = 300
   wait_for_capacity_timeout = "0"
 
-  min_size         = 2
-  max_size         = 4
-  desired_capacity = 2
+  min_size         = var.min_size
+  max_size         = var.max_size
+  desired_capacity = var.desired_size
 
   launch_template {
     id      = aws_launch_template.backend_lt.id
@@ -141,12 +152,12 @@ resource "aws_autoscaling_policy" "frontend_scale_out" {
 resource "aws_cloudwatch_metric_alarm" "frontend_high_cpu" {
   alarm_name          = "${var.lastname}-frontend-high-cpu"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 1
+  evaluation_periods  = var.evaluation_periods
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = var.period
   statistic           = "Average"
-  threshold           = 40
+  threshold           = var.out_threshold
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.frontend_asg.name
@@ -164,15 +175,16 @@ resource "aws_autoscaling_policy" "frontend_scale_in" {
   autoscaling_group_name = aws_autoscaling_group.frontend_asg.name
 }
 
+# should be slower then scale out to avoid flapping
 resource "aws_cloudwatch_metric_alarm" "frontend_low_cpu" {
   alarm_name          = "${var.lastname}-frontend-low-cpu"
   comparison_operator = "LessThanOrEqualToThreshold"
-  evaluation_periods  = 1
+  evaluation_periods  = var.evaluation_periods
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = var.period
   statistic           = "Average"
-  threshold           = 10
+  threshold           = var.in_threshold
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.frontend_asg.name
@@ -195,12 +207,12 @@ resource "aws_autoscaling_policy" "backend_scale_out" {
 resource "aws_cloudwatch_metric_alarm" "backend_high_cpu" {
   alarm_name          = "${var.lastname}-backend-high-cpu"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 1
+  evaluation_periods  = var.evaluation_periods
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = var.period
   statistic           = "Average"
-  threshold           = 40
+  threshold           = var.out_threshold
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.backend_asg.name
@@ -221,12 +233,12 @@ resource "aws_autoscaling_policy" "backend_scale_in" {
 resource "aws_cloudwatch_metric_alarm" "backend_low_cpu" {
   alarm_name          = "${var.lastname}-backend-low-cpu"
   comparison_operator = "LessThanOrEqualToThreshold"
-  evaluation_periods  = 1
+  evaluation_periods  = var.evaluation_periods
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = 60
+  period              = var.period
   statistic           = "Average"
-  threshold           = 10
+  threshold           = var.in_threshold
 
   dimensions = {
     AutoScalingGroupName = aws_autoscaling_group.backend_asg.name

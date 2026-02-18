@@ -46,3 +46,35 @@ variable "instance_type" {
   description = "Instance type"
   type        = string
 }
+
+variable "min_size" {
+  description = "Minimum number of instances in the Auto Scaling Group"
+  type = number
+}
+
+variable "max_size" {
+  description = "Maximum number of instances in the Auto Scaling Group"
+  type = number
+}
+
+variable "desired_size" {
+  description = "Desired number of instances in the Auto Scaling Group"
+  type = number
+}
+
+variable "evaluation_periods" {
+  description = "Number of periods over which data is compared to the specified threshold"
+  type        = number
+}
+
+variable "period" {
+  type = number
+}
+
+variable "out_threshold" {
+  type = number
+}
+
+variable "in_threshold" {
+  type = number
+}

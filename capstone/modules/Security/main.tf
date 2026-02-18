@@ -57,7 +57,7 @@ resource "aws_security_group" "bastion_sg" {
   tags = local.bastion_sg_tags
 }
 
-# 1. PUBLIC ALB SECURITY GROUP
+# PUBLIC ALB SECURITY GROUP
 resource "aws_security_group" "alb_sg" {
   name        = "alb-sg"
   description = "Allow HTTP traffic from the internet to the ALB"
@@ -100,7 +100,7 @@ resource "aws_security_group" "app_sgs" {
 }
 
 
-# 3. CONNECTIVITY RULES (The Plumbing)
+# CONNECTIVITY RULES (The Plumbing)
 # Bastion SSH
 resource "aws_security_group_rule" "bastion_ssh" {
   for_each = local.app_tiers
