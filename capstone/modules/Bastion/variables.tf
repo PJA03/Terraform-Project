@@ -8,6 +8,7 @@ variable "required_tags" {
 
 variable "bastion_instance" {
   type = string
+  default = "t2.micro"
 }
 
 variable "key_name" {
@@ -20,6 +21,7 @@ variable "public_subnets" {
 
 variable "assoc_ip" {
   type = bool
+  default = true
 }
 
 variable "bastion_sg_id" {

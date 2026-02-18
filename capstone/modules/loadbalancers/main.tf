@@ -4,13 +4,13 @@
  *
  * Resources Created:
  * 1. Frontend Application Load Balancer (ALB):
- * - Type: Application (Layer 7 / HTTP).
+ * - Type: Application (Layer 7 -  application layer / HTTP).
  * - Scheme: Internet-facing (Public Subnets).
  * - Function: Routes external user traffic to the Frontend Auto Scaling Group.
  * - Health Check: Monitors HTTP status 200 on path "/".
  *
  * 2. Backend Network Load Balancer (NLB):
- * - Type: Network (Layer 4 / TCP).
+ * - Type: Network (Layer 4 - transport layer / TCP).
  * - Scheme: Internal-only (Private Subnets).
  * - Function: Routes internal traffic from Frontend instances to the Backend Auto Scaling Group.
  * - Health Check: Monitors TCP connection health.
@@ -48,9 +48,9 @@ resource "aws_lb_target_group" "frontend_tg" {
   vpc_id   = var.vpc_id
 
   health_check {
-    path                = "/"
+    path                = var.health_check_path
     protocol            = "HTTP"
-    matcher             = "200"
+    matcher             = var.health_check_matcher
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2

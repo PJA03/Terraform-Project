@@ -41,8 +41,8 @@ resource "aws_security_group" "bastion_sg" {
   vpc_id      = var.vpc_id
 
   ingress {
-    from_port   = var.ssh_port
-    to_port     = var.ssh_port
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = [var.access_ip] #access to my ip only
   }
@@ -151,6 +151,6 @@ resource "aws_security_group_rule" "backend_allow_health_checks" {
   from_port         = 80
   to_port           = 80
   protocol          = "tcp"
-  cidr_blocks       = ["10.0.0.0/16"] # Ensure this matches your VPC CIDR
+  cidr_blocks       = [var.vpc_cidr]
   security_group_id = aws_security_group.app_sgs["backend"].id
 }

@@ -42,6 +42,7 @@ data "aws_ami" "latest_amazon_linux" {
 # FRONTEND RESOURCES
 # --- Frontend Launch Template ---
 resource "aws_launch_template" "frontend_lt" {
+  # makes names unique which prevents downtime during updates
   name_prefix   = "${var.lastname}-frontend-lt-"
   image_id      = data.aws_ami.latest_amazon_linux.id
   instance_type = var.instance_type
@@ -78,6 +79,7 @@ resource "aws_autoscaling_group" "frontend_asg" {
   health_check_type         = "ELB"
   # might cause death loop when lowered; allows installation and updates before checking
   health_check_grace_period = 300 
+  # for tf to wait before marking instance as unhealthy; 10 mins default
   wait_for_capacity_timeout = "0"
 
   min_size         = var.min_size

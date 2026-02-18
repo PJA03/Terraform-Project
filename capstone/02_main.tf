@@ -2,10 +2,6 @@ module "network" {
   source        = "./modules/VPC"
   lastname      = var.lastname
   required_tags = var.required_tags
-  vpc_cidr      = var.vpc_cidr
-  public_cidrs  = var.public_cidrs
-  private_cidrs = var.private_cidrs
-  azs           = var.azs
 }
 
 # for dynamically getting my ip
@@ -17,22 +13,17 @@ module "security" {
   source        = "./modules/security"
   vpc_id        = module.network.vpc_id
   lastname      = var.lastname
-  http_port     = var.http_port
-  ssh_port      = var.ssh_port
   required_tags = var.required_tags
-  vpc_cidr      = var.vpc_cidr
-
+  
   #   chomp for clean up
   access_ip = "${chomp(data.http.my_ip.response_body)}/32"
 }
 
 module "bastion_host" {
   source           = "./modules/Bastion"
-  assoc_ip         = var.assoc_ip
   lastname         = var.lastname
   required_tags    = var.required_tags
   key_name         = var.key_name
-  bastion_instance = var.bastion_instance
   public_subnets   = module.network.public_subnet_ids
   bastion_sg_id    = module.security.bastion_sg_id
 }
@@ -50,14 +41,6 @@ module "instances" {
   backend_tg_arn     = module.loadbalancers.backend_tg_arn
   backend_url        = module.loadbalancers.backend_dns_name
   private_subnet_ids = module.network.private_subnet_ids
-  instance_type      = var.instance_type
-  min_size = var.min_size
-  max_size = var.max_size
-  desired_size = var.desired_size
-  evaluation_periods = var.evaluation_periods
-  period = var.period
-  out_threshold = var.out_threshold
-  in_threshold = var.in_threshold
 }
 
 module "loadbalancers" {
