@@ -24,3 +24,5 @@ override.tf.json
 
 # key
 *.pem
+
+*.git
