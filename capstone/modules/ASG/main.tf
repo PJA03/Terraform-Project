@@ -88,14 +88,14 @@ resource "aws_autoscaling_group" "frontend_asg" {
 
   launch_template {
     id      = aws_launch_template.frontend_lt.id
-    version = "$Latest"
-  }
+    version = aws_launch_template.frontend_lt.latest_version  
+}
 
   instance_refresh {
     strategy = "Rolling"
     preferences {
       min_healthy_percentage = 50  # Keep 50% of servers alive while updating
-      instance_warmup        = 300 # Wait 2 mins before updating the next batch
+      instance_warmup        = 120 # Wait 2 mins before updating the next batch
     }
   }
   depends_on = [aws_launch_template.frontend_lt]
