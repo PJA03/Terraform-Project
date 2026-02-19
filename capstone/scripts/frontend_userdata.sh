@@ -50,6 +50,7 @@ EOF
 
 # echo "<html><head><title>Frontend</title></head><body style='background-color: pink;'>"
 
+
 # Make script executable
 chmod +x /var/www/cgi-bin/fetch_backend.sh
 

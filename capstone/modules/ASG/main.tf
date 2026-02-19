@@ -43,10 +43,10 @@ data "aws_ami" "latest_amazon_linux" {
 # --- Frontend Launch Template ---
 resource "aws_launch_template" "frontend_lt" {
   # makes names unique which prevents downtime during updates
-  name_prefix   = "${var.lastname}-frontend-lt-"
-  image_id      = data.aws_ami.latest_amazon_linux.id
-  instance_type = var.instance_type
-  key_name      = var.key_name
+  name_prefix            = "${var.lastname}-frontend-lt-"
+  image_id               = data.aws_ami.latest_amazon_linux.id
+  instance_type          = var.instance_type
+  key_name               = var.key_name
   vpc_security_group_ids = [var.frontend_sg_id]
 
   # Inject Backend URL variable into script
@@ -58,7 +58,7 @@ resource "aws_launch_template" "frontend_lt" {
     create_before_destroy = true
   }
 
-  monitoring { 
+  monitoring {
     # Enable detailed monitoring for better scaling responsiveness (1-minute metrics)
     # since cloudwatch default is 5 mins 
     enabled = true
@@ -76,9 +76,9 @@ resource "aws_autoscaling_group" "frontend_asg" {
   vpc_zone_identifier = var.private_subnet_ids
   target_group_arns   = [var.frontend_tg_arn]
 
-  health_check_type         = "ELB"
+  health_check_type = "ELB"
   # might cause death loop when lowered; allows installation and updates before checking
-  health_check_grace_period = 300 
+  health_check_grace_period = 300
   # for tf to wait before marking instance as unhealthy; 10 mins default
   wait_for_capacity_timeout = "0"
 
@@ -90,6 +90,15 @@ resource "aws_autoscaling_group" "frontend_asg" {
     id      = aws_launch_template.frontend_lt.id
     version = "$Latest"
   }
+
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50  # Keep 50% of servers alive while updating
+      instance_warmup        = 300 # Wait 2 mins before updating the next batch
+    }
+  }
+  depends_on = [aws_launch_template.frontend_lt]
 }
 
 # BACKEND RESOURCES
@@ -109,7 +118,7 @@ resource "aws_launch_template" "backend_lt" {
     create_before_destroy = true
   }
 
-  monitoring { 
+  monitoring {
     # Enable detailed monitoring for better scaling responsiveness (1-minute metrics)
     enabled = true
   }
@@ -136,8 +145,16 @@ resource "aws_autoscaling_group" "backend_asg" {
 
   launch_template {
     id      = aws_launch_template.backend_lt.id
-    version = "$Latest"
+    version = aws_launch_template.backend_lt.latest_version
   }
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 50  # Keep 50% of servers alive while updating
+      instance_warmup        = 300 # Wait 2 mins before updating the next batch
+    }
+  }
+  depends_on = [aws_launch_template.backend_lt]
 }
 
 # FRONTEND SCALING POLICIES (Scaling Out & In)

@@ -17,11 +17,31 @@ variable "alb_sg_id" {
 variable "health_check_path" {
   description = "The URL path for the health check (e.g., / or /health)"
   type        = string
-  default     = "/" 
+  default     = "/"
 }
 
 variable "health_check_matcher" {
   description = "The HTTP codes to accept as healthy (e.g., 200 or 200-399)"
   type        = string
   default     = "200"
+}
+
+variable "tg_interval" {
+  type    = number
+  default = 30
+}
+
+variable "tg_timeout" {
+  type    = number
+  default = 5
+}
+
+variable "tg_healthy_threshold" {
+  type    = number
+  default = 2
+}
+
+variable "tg_unhealthy_threshold" {
+  type    = number
+  default = 2
 }

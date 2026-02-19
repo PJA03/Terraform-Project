@@ -14,18 +14,18 @@ module "security" {
   vpc_id        = module.network.vpc_id
   lastname      = var.lastname
   required_tags = var.required_tags
-  
+
   #   chomp for clean up
   access_ip = "${chomp(data.http.my_ip.response_body)}/32"
 }
 
 module "bastion_host" {
-  source           = "./modules/Bastion"
-  lastname         = var.lastname
-  required_tags    = var.required_tags
-  key_name         = var.key_name
-  public_subnets   = module.network.public_subnet_ids
-  bastion_sg_id    = module.security.bastion_sg_id
+  source         = "./modules/Bastion"
+  lastname       = var.lastname
+  required_tags  = var.required_tags
+  key_name       = var.key_name
+  public_subnets = module.network.public_subnet_ids
+  bastion_sg_id  = module.security.bastion_sg_id
 }
 
 # asg module

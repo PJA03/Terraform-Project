@@ -7,7 +7,7 @@ variable "required_tags" {
 }
 
 variable "bastion_instance" {
-  type = string
+  type    = string
   default = "t2.micro"
 }
 
@@ -20,7 +20,7 @@ variable "public_subnets" {
 }
 
 variable "assoc_ip" {
-  type = bool
+  type    = bool
   default = true
 }
 

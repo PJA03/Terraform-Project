@@ -51,11 +51,12 @@ resource "aws_lb_target_group" "frontend_tg" {
     path                = var.health_check_path
     protocol            = "HTTP"
     matcher             = var.health_check_matcher
-    interval            = 30
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
+    interval            = var.tg_interval
+    timeout             = var.tg_timeout
+    healthy_threshold   = var.tg_healthy_threshold
+    unhealthy_threshold = var.tg_unhealthy_threshold
   }
+
 
   tags = local.fe-tg
 }
@@ -95,10 +96,10 @@ resource "aws_lb_target_group" "backend_tg" {
   # TCP Health Check is standard for NLBs
   health_check {
     protocol            = "TCP"
-    interval            = 30
-    timeout             = 10 # Cannot be greater than interval for TCP
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
+    interval            = var.tg_interval
+    timeout             = var.tg_timeout
+    healthy_threshold   = var.tg_healthy_threshold
+    unhealthy_threshold = var.tg_unhealthy_threshold
   }
 
   tags = local.be-tg
