@@ -77,25 +77,26 @@ resource "aws_nat_gateway" "main" {
 # Public RT
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0" //allow connection to the internet
-    gateway_id = aws_internet_gateway.igw.id
-  }
-
   tags = local.public_rt_tags
 }
+
+resource "aws_route" "internet_gateway" {
+  route_table_id         = aws_route_table.public_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
+}
+
 
 # Private RT
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main.id //for private subnets to get internet connection
-  }
-
   tags = local.private_rt_tags
+}
+
+resource "aws_route" "internet_access" {
+  route_table_id         = aws_route_table.private_rt.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id = aws_nat_gateway.main.id
 }
 
 

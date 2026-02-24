@@ -34,7 +34,7 @@ locals {
 resource "aws_lb" "frontend_alb" {
   name               = "${var.lastname}-frontend-alb"
   internal           = false # Public facing
-  load_balancer_type = "application"
+  load_balancer_type = var.fe_lb_type
   security_groups    = [var.alb_sg_id]
   subnets            = var.public_cidrs
 
@@ -78,7 +78,7 @@ resource "aws_lb_listener" "frontend_http" {
 resource "aws_lb" "backend_nlb" {
   name               = "${var.lastname}-backend-nlb"
   internal           = true # Internal only (Private Subnets)
-  load_balancer_type = "network"
+  load_balancer_type = var.be_lb_type
   subnets            = var.private_cidrs
 
   # distribute traffic across all Availability Zones
