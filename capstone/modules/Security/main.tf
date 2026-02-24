@@ -145,7 +145,7 @@ resource "aws_security_group_rule" "frontend_to_backend" {
   security_group_id        = aws_security_group.app_sgs["backend"].id
 }
 
-# Backend Health Check
+# NLB Health Checks (VPC -> Backend)
 resource "aws_security_group_rule" "backend_allow_health_checks" {
   type              = "ingress"
   from_port         = 80

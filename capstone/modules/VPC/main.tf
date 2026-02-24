@@ -77,7 +77,7 @@ resource "aws_nat_gateway" "main" {
 # Public RT
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main.id
-  tags = local.public_rt_tags
+  tags   = local.public_rt_tags
 }
 
 resource "aws_route" "internet_gateway" {
@@ -90,13 +90,13 @@ resource "aws_route" "internet_gateway" {
 # Private RT
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.main.id
-  tags = local.private_rt_tags
+  tags   = local.private_rt_tags
 }
 
 resource "aws_route" "internet_access" {
   route_table_id         = aws_route_table.private_rt.id
   destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id = aws_nat_gateway.main.id
+  nat_gateway_id         = aws_nat_gateway.main.id
 }
 
 
