@@ -1,4 +1,3 @@
-# Fixed name so you don't have to edit backend.tf every day
 $bucketName = "galias-finalproject-statefile"
 $region = "ap-southeast-1"
 
