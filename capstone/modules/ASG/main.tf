@@ -164,7 +164,7 @@ resource "aws_autoscaling_policy" "frontend_scale_out" {
   name                   = "frontend-scale-out"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 60 #value for testing demo only; reset to 300
   autoscaling_group_name = aws_autoscaling_group.frontend_asg.name
 }
 
@@ -190,7 +190,7 @@ resource "aws_autoscaling_policy" "frontend_scale_in" {
   name                   = "frontend-scale-in"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 60 #value for testing demo only; reset to 300
   autoscaling_group_name = aws_autoscaling_group.frontend_asg.name
 }
 
@@ -219,7 +219,7 @@ resource "aws_autoscaling_policy" "backend_scale_out" {
   name                   = "backend-scale-out"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 60 #value for testing demo only; reset to 300
   autoscaling_group_name = aws_autoscaling_group.backend_asg.name
 }
 
@@ -245,7 +245,7 @@ resource "aws_autoscaling_policy" "backend_scale_in" {
   name                   = "backend-scale-in"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300
+  cooldown               = 60 #value for testing demo only; reset to 3000
   autoscaling_group_name = aws_autoscaling_group.backend_asg.name
 }
 
